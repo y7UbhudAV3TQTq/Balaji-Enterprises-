@@ -21,15 +21,53 @@
 }
 
 .glass-morphism {
-  @apply backdrop-blur-md bg-white/80 border border-white/20;
+  @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-2xl;
 }
 
-.glass-dark {
-  @apply backdrop-blur-md bg-secondary/80 border border-white/10;
+.fire-glow {
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
 }
 
-.btn-hover {
-  @apply transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl;
+.suppression-gradient {
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+}
+
+.heat-haze {
+  filter: url(#haze);
+  animation: haze 2s ease-in-out infinite alternate;
+}
+
+@keyframes haze {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-2px); }
+}
+
+.btn-wow {
+  @apply relative overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_-5px_rgba(239,68,68,0.5)] active:scale-95;
+}
+
+.btn-wow::after {
+  content: '';
+  @apply absolute inset-0 bg-white/20 -translate-x-full skew-x-12 transition-transform duration-700;
+}
+
+.btn-wow:hover::after {
+  @apply translate-x-full;
+}
+
+.bento-card {
+  @apply relative overflow-hidden rounded-[3rem] bg-white border border-gray-100 p-8 transition-all duration-500 hover:border-primary/20 hover:shadow-premium;
+}
+
+@keyframes ember {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+}
+
+.ember {
+  @apply absolute w-1 h-1 bg-primary rounded-full blur-[1px] pointer-events-none;
+  animation: ember 3s infinite;
 }
 
 .mask-fade {

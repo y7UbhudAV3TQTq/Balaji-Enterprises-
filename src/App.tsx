@@ -163,83 +163,115 @@ const EmergencyBanner = () => (
   </div>
 );
 
+const EmberField = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {[...Array(20)].map((_, i) => (
+      <div 
+        key={i} 
+        className="ember" 
+        style={{ 
+          left: `${Math.random() * 100}%`, 
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${3 + Math.random() * 5}s`
+        }} 
+      />
+    ))}
+  </div>
+);
+
 const Hero = () => {
   const { scrollY } = useScroll();
   const yBg = useTransform(scrollY, [0, 800], [0, 300]);
   const yContent = useTransform(scrollY, [0, 500], [0, -100]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const [isDischarging, setIsDischarging] = useState(false);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-24 overflow-hidden bg-secondary">
+      <EmberField />
+      
       {/* Parallax Background */}
       <motion.div style={{ y: yBg }} className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/70 to-transparent z-10" />
+        <div className={`absolute inset-0 bg-gradient-to-r from-secondary via-secondary/70 to-transparent z-10 transition-colors duration-1000 ${isDischarging ? 'bg-blue-900/40' : 'fire-glow'}`} />
         <img 
           src="https://images.unsplash.com/photo-1611159063981-b8c8c4301869?auto=format&fit=crop&w=1920&q=80" 
           alt="Fire emergency background" 
-          className="w-full h-full object-cover scale-110 opacity-60"
+          className={`w-full h-full object-cover scale-110 opacity-60 transition-all duration-1000 ${isDischarging ? 'filter grayscale brightness-125' : 'heat-haze'}`}
         />
       </motion.div>
       
-      {/* Decorative Orbs */}
-      <div className="absolute top-1/4 -right-24 w-96 h-96 bg-primary/10 blur-[100px] rounded-full animate-pulse" />
-      <div className="absolute bottom-1/4 -left-24 w-96 h-96 bg-blue-500/5 blur-[100px] rounded-full" />
+      {/* Suppression Discharge Effect */}
+      <AnimatePresence>
+        {isDischarging && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1.5 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.4),transparent_60%)] blur-3xl shadow-[inset_0_0_100px_rgba(255,255,255,0.2)]"
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-6 relative z-30">
         <motion.div style={{ y: yContent }} className="max-w-4xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full mb-8 backdrop-blur-sm shadow-2xl"
+            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-2.5 rounded-full mb-10 backdrop-blur-md shadow-2xl"
           >
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">ISO 9001:2015 CERTIFIED</span>
+            <div className={`w-3 h-3 rounded-full ${isDischarging ? 'bg-blue-400' : 'bg-primary'} animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]`} />
+            <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">ELITE SAFETY ENGINEERING • EST 2015</span>
           </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-8xl font-display font-black text-white leading-[0.95] tracking-tight mb-8"
+            className="text-7xl md:text-9xl font-display font-black text-white leading-[0.85] tracking-tighter mb-10"
           >
-            THE ULTIMATE <br/> <span className="text-primary italic">SHIELD</span> FOR LIFE.
+            EXTINGUISH <br/> <span className={`${isDischarging ? 'text-blue-400 shadow-[0_0_50px_rgba(96,165,250,0.5)]' : 'text-primary'} transition-all duration-1000 italic`}>THE RISK.</span>
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg md:text-xl text-white/50 max-w-2xl mb-12 leading-relaxed font-medium"
+            className="text-xl md:text-2xl text-white/40 max-w-2xl mb-14 leading-relaxed font-semibold italic"
           >
-            Balaji Enterprises delivers mission-critical fire safety systems and industrial signage for Bangalore's high-stakes environments. Professional engineering meets rapid response.
+            Mission-critical fire suppression and industrial signage for Bangalore's high-stakes environments. Professional engineering meets rapid response.
           </motion.p>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-6"
+            className="flex flex-col sm:flex-row gap-8"
           >
-            <a href="#products-preview" className="bg-primary text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest btn-hover shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-transform">
-              EXPLORE ARMORY <ArrowRight className="w-4 h-4" />
+            <a href="#products-preview" className="bg-primary text-white px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 shadow-2xl shadow-primary/30">
+              COMMAND THE ARSENAL <Flame className="w-5 h-5" />
             </a>
-            <a href="#contact" className="bg-white/5 text-white border border-white/10 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3 active:scale-95">
-              REQUEST AUDIT <ShieldCheck className="w-4 h-4" />
-            </a>
+            <button 
+              onMouseDown={() => setIsDischarging(true)}
+              onMouseUp={() => setIsDischarging(false)}
+              onMouseLeave={() => setIsDischarging(false)}
+              className="bg-white/5 text-white border border-white/10 px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 group backdrop-blur-md"
+            >
+              TEST SUPPRESSION <div className="p-1 rounded-full bg-blue-500 group-hover:animate-ping"><Shower className="w-4 h-4" /></div>
+            </button>
           </motion.div>
         </motion.div>
       </div>
 
-      {/* Scroll Hint */}
       <motion.div 
         style={{ opacity }}
-        animate={{ y: [0, 10, 0] }} 
+        animate={{ y: [0, 20, 0] }} 
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
       >
-        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Scroll Down</span>
-        <div className="w-px h-12 bg-gradient-to-b from-primary to-transparent" />
+        <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.5em]">MISSION READY</span>
+        <div className="w-px h-16 bg-gradient-to-b from-primary to-transparent opacity-50" />
       </motion.div>
     </section>
   );
@@ -361,43 +393,84 @@ const About = () => (
   </section>
 );
 
-const Services = () => (
-  <section id="services" className="py-24 bg-secondary">
-    <div className="container mx-auto px-6">
-      <div className="mb-20 text-center">
-        <span className="text-primary font-black tracking-widest text-xs uppercase block mb-3">What We Provide</span>
-        <h2 className="text-4xl md:text-5xl font-display font-black text-white">Expert Safety Services</h2>
-        <div className="h-1.5 w-20 bg-primary mt-6 rounded-full mx-auto"></div>
-      </div>
+const Services = () => {
+  const services = [
+    { 
+      title: 'Signage Manufacturing', 
+      desc: 'Industrial-grade production of safety, informative, and regulatory boards using global-standard materials.',
+      icon: Construction,
+      size: 'large',
+      img: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80'
+    },
+    { 
+      title: 'Site Logistics & Audit', 
+      desc: 'Expert strategic assessment of physical premises to map critical safety points.',
+      icon: Eye,
+      size: 'small',
+      color: 'bg-primary'
+    },
+    { 
+      title: 'Certified Installation', 
+      desc: 'Mission-ready mounting and calibration of active fire suppression hardware.',
+      icon: ShieldCheck,
+      size: 'small',
+      color: 'bg-secondary'
+    },
+    { 
+      title: 'Luminescent R&D', 
+      desc: 'Pioneering zero-light visibility solutions using advanced photoluminescent technology.',
+      icon: Star,
+      size: 'medium',
+      img: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fab35?auto=format&fit=crop&w=800&q=80'
+    }
+  ];
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {[
-          { title: 'Installation', icon: Construction, desc: 'Professional setup of suppression systems and alarms.' },
-          { title: 'Maintenance', icon: Clock, desc: 'Routine audits and equipment testing to ensure peak readiness.' },
-          { title: 'Training', icon: Users, desc: 'Live fire drills and safety workshops for your personnel.' },
-          { title: 'Audit & Compliance', icon: ShieldCheck, desc: 'Detailed inspections for regulatory & NFO compliance.' },
-          { title: 'Emergency Repair', icon: AlertTriangle, desc: '24/7 rapid response for critical safety failures.' },
-          { title: 'Consultancy', icon: Info, desc: 'Customized fire protection planning for complex sites.' }
-        ].map((service, idx) => (
-          <motion.div 
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            viewport={{ once: true }}
-            className="group p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white transition-all duration-500 cursor-default"
-          >
-            <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-              <service.icon className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-display font-bold text-white group-hover:text-secondary mb-4 transition-colors duration-500">{service.title}</h3>
-            <p className="text-white/40 group-hover:text-secondary/60 leading-relaxed transition-colors duration-500">{service.desc}</p>
-          </motion.div>
-        ))}
+  return (
+    <section id="services" className="py-32 bg-[#fafafa]">
+      <div className="container mx-auto px-6">
+        <div className="mb-20 text-center">
+          <SectionHeading subtitle="Active Ecosystem" title="The Architecture of Safety" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-auto md:h-[800px]">
+          {services.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className={`bento-card group flex flex-col justify-between ${
+                s.size === 'large' ? 'md:col-span-2 md:row-span-2' : 
+                s.size === 'medium' ? 'md:col-span-2 md:row-span-1' : ''
+              } ${s.color || 'bg-white'}`}
+            >
+              {s.img && (
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
+                  <img src={s.img} alt={s.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+              
+              <div className="relative z-10">
+                <div className={`w-16 h-16 ${s.size === 'small' ? 'bg-white/20' : 'bg-primary/5'} rounded-3xl flex items-center justify-center mb-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12`}>
+                  <s.icon className={`w-8 h-8 ${s.size === 'small' ? 'text-white' : 'text-primary'}`} />
+                </div>
+                <h3 className={`text-4xl font-display font-black mb-6 tracking-tighter leading-none ${s.size === 'small' ? 'text-white' : 'text-secondary'}`}>{s.title}</h3>
+                <p className={`text-xl leading-relaxed ${s.size === 'small' ? 'text-white/60' : 'text-gray-400 font-medium'}`}>{s.desc}</p>
+              </div>
+
+              <div className="flex justify-end relative z-10 mt-10">
+                <div className={`p-4 rounded-full ${s.size === 'small' ? 'bg-white/10' : 'bg-gray-50'} group-hover:translate-x-3 transition-transform duration-500`}>
+                  <ArrowRight className={`w-5 h-5 ${s.size === 'small' ? 'text-white' : 'text-primary'}`} />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const SignBoards = () => {
   const signs = [
