@@ -652,12 +652,12 @@ const Services = () => {
 
 const SignBoards = () => {
   const signs = [
-    { cat: 'prohibition', icon: LogOut, name: 'No Smoking', color: 'text-red-500', bg: 'bg-red-50' },
-    { cat: 'mandatory', icon: Bell, name: 'Hard Hat Area', color: 'text-blue-500', bg: 'bg-blue-50' },
-    { cat: 'warning', icon: AlertTriangle, name: 'High Voltage', color: 'text-amber-500', bg: 'bg-amber-50' },
-    { cat: 'safe', icon: Stethoscope, name: 'First Aid', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { cat: 'fire', icon: Flame, name: 'Extinguisher', color: 'text-red-600', bg: 'bg-red-50' },
-    { cat: 'evacuation', icon: ArrowRight, name: 'Fire Exit', color: 'text-emerald-600', bg: 'bg-emerald-50' }
+    { cat: 'PROHIBITION', icon: LogOut, name: 'No Smoking', color: 'text-red-500', bg: 'bg-red-50' },
+    { cat: 'MANDATORY', icon: Bell, name: 'Safety Helmet', color: 'text-blue-500', bg: 'bg-blue-50' },
+    { cat: 'WARNING', icon: AlertTriangle, name: 'High Voltage', color: 'text-amber-500', bg: 'bg-amber-50' },
+    { cat: 'EMERGENCY', icon: Stethoscope, name: 'First Aid', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { cat: 'FIRE EQUIPMENT', icon: Flame, name: 'Fire Hose', color: 'text-red-600', bg: 'bg-red-50' },
+    { cat: 'EXIT SIGNS', icon: ArrowRight, name: 'Directional', color: 'text-emerald-600', bg: 'bg-emerald-50' }
   ];
 
   return (
@@ -915,7 +915,9 @@ function MainApp() {
                             whileHover={{ scale: 1.2, rotate: 5 }}
                           />
                         </div>
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 block">{p.category}</span>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 block">
+                          {p.category === 'extinguishers' ? 'Fire Extinguisher' : 'Signage Board'}
+                        </span>
                         <h4 className="text-xl font-display font-black text-secondary tracking-tight group-hover:text-primary transition-colors">{p.name}</h4>
                         
                         <div className="mt-8 pt-8 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">

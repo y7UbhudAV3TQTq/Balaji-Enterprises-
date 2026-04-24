@@ -1,7 +1,7 @@
 export interface Product {
   id: string;
   name: string;
-  category: 'extinguishers' | 'prohibition' | 'mandatory' | 'warning' | 'emergency' | 'direction' | 'fire-safety' | 'general' | 'signboards';
+  category: 'extinguishers' | 'signage';
   image: string;
   description: string;
   specs: string[];
@@ -10,15 +10,9 @@ export interface Product {
 }
 
 export const CATEGORIES = [
-  { id: 'all', label: 'All Inventory' },
-  { id: 'extinguishers', label: 'Extinguishers' },
-  { id: 'prohibition', label: 'Prohibition' },
-  { id: 'mandatory', label: 'Mandatory' },
-  { id: 'warning', label: 'Warning' },
-  { id: 'emergency', label: 'Emergency/Life' },
-  { id: 'direction', label: 'Directional' },
-  { id: 'fire-safety', label: 'Fire Signage' },
-  { id: 'general', label: 'General' },
+  { id: 'all', label: 'All Products' },
+  { id: 'extinguishers', label: 'Fire Extinguisher' },
+  { id: 'signage', label: 'All Types of Signage Board' },
 ];
 
 export const ALL_PRODUCTS: Product[] = [
@@ -78,7 +72,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-no-smk', 
     name: 'Strictly No Smoking', 
-    category: 'prohibition', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/NO%20SMOKING_page-0001.jpg',
     description: 'Standard prohibition signage for fire safety.',
     specs: ['Red/White', 'Weatherproof', '12x12/12x18'],
@@ -87,7 +81,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-no-ent', 
     name: 'No Entry Authorized Only', 
-    category: 'prohibition', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/NO%20entry_page-0001.jpg',
     description: 'Restrict access to hazardous or private areas.',
     specs: ['High Gloss', 'Tough Mount', 'High Vis'],
@@ -96,7 +90,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-no-phn', 
     name: 'No Mobile Phones Zone', 
-    category: 'prohibition', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/NO%20MOBILE%20PHONE_page-0001.jpg',
     description: 'For sensitive electronics or explosive hazard areas.',
     specs: ['PVC Vinyl', 'Non-Reflective', 'Digital Print'],
@@ -105,7 +99,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-no-prk', 
     name: 'No Parking - Safe Zone', 
-    category: 'prohibition', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/No%20parking%20sign%20board%20printable%20_%20Premium%20Vector.jpeg',
     description: 'Keep emergency access paths clear.',
     specs: ['Metal/Plate', 'UV Printed', 'Anti-Fade'],
@@ -116,7 +110,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-helmet', 
     name: 'Wear Safety Helmet Area', 
-    category: 'mandatory', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Wear%20Helmet.jpeg',
     description: 'Personal protective equipment mandatory sign.',
     specs: ['Safety Blue', 'Symbol Icon', 'Standard Compliant'],
@@ -125,7 +119,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-gloves', 
     name: 'Safety Gloves Required', 
-    category: 'mandatory', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Wear%20Protective%20Gloves%20Sign%20-%207%20%C3%97%2010%E2%80%B3%20-%20_055%E2%80%B3%20Polyethylene%20Plastic.jpeg',
     description: 'Mandatory glove usage sign for hazardous handling.',
     specs: ['Graphic Icons', 'OSHA Standard', 'Rigid Plastic'],
@@ -136,7 +130,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-high-v', 
     name: 'Danger High Voltage', 
-    category: 'warning', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Home%20Automation%20With%20ESP8266%20WiFi%20Without%20Using%20Blynk!.jpeg',
     description: 'Electrical hazard warning signage for panels.',
     specs: ['Yellow/Black', 'Reflective', 'Shock Warning'],
@@ -145,7 +139,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-toxic', 
     name: 'Caution Toxic Materials', 
-    category: 'warning', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Warning-Caution-Toxic-Materials.png',
     description: 'Warning for chemical/biological storage areas.',
     specs: ['Hazard Symbol', 'International Std', 'Chemical Resist'],
@@ -156,7 +150,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-glow-exit', 
     name: 'Photoluminescent Fire Exit', 
-    category: 'emergency', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Photoluminescent%20Fire%20Exit%20Sign%20LARGE%20-%20Man%20on%20Left%20-%20600%20x%20150Hmm%20-%20Self%20Adhesive%20Rigid%20Plastic%20-%20%5BAS-PH14-SARP%5D.jpeg',
     description: 'Visible in total blackout situations.',
     specs: ['Superior Glow', '8+ Hour Life', 'Self-Adhesive'],
@@ -166,7 +160,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-asm-pt', 
     name: 'Fire Assembly Point', 
-    category: 'emergency', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Red%20Fire%20Assembly%20Point%20Sign%20-%2010%20%C3%97%2014%E2%80%B3%20-%20_040%E2%80%B3%20Engineering%20Grade%20Reflective%20Aluminum.jpeg',
     description: 'Designated safe meeting area marker.',
     specs: ['Large Format', 'Outdoor Grade', 'Reflective'],
@@ -175,7 +169,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-firstaid', 
     name: 'First Aid Station Station', 
-    category: 'emergency', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Download%20First%20Aid%20Label%20Sign%20on%20white%20background%20for%20free.jpeg',
     description: 'Identification for first aid and medical kits.',
     specs: ['Safety Green', 'Cross Icon', 'Clear Text'],
@@ -186,7 +180,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-ext-id', 
     name: 'Fire Extinguisher ID Sign', 
-    category: 'fire-safety', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Fire%20Extinguisher%20Labels%20-%20Fire%20Extinguisher%20Label%20-%207%20x%2010_%20-%203_5%20Mil%20InfiniStick%E2%84%A2%20Vinyl%20Label.jpeg',
     description: 'Mark location of fire extinguishers clearly.',
     specs: ['Red Warning', 'Location Marker', 'Laminated'],
@@ -195,10 +189,10 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-hose', 
     name: 'Fire Hose Reel Marker', 
-    category: 'fire-safety', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Fire%20Hose%20Reel%20Sign%20-%20150x200mm%20_%20Self%20Adhesive%20Vinyl.jpeg',
     description: 'Identify fire hose reel stations for manual operation.',
-    specs: ['Vinyl Wrap', 'High Contrasting', 'Clean Edge'],
+    specs: ['Vinyl Wrap', 'High Contrasting', 'Clear Edge'],
     defaultSize: '12x18'
   },
 
@@ -206,7 +200,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-recep', 
     name: 'Reception Area Identification', 
-    category: 'general', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/reception.jpg',
     description: 'Clean, professional office navigation.',
     specs: ['Gold/Silver Opt', 'Acrylic Base', 'Modern Font'],
@@ -215,7 +209,7 @@ export const ALL_PRODUCTS: Product[] = [
   { 
     id: 'sign-wash', 
     name: 'Modern Washroom Signage', 
-    category: 'general', 
+    category: 'signage', 
     image: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Copy%20of%20Gents%20and%20Ladies%20Toilet%20Sign.jpeg',
     description: 'Gents/Ladies restroom icons for public buildings.',
     specs: ['Pictograms', 'Sleek Design', 'Easy Clean'],

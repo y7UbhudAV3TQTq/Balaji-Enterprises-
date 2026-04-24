@@ -15,7 +15,19 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         const saved = localStorage.getItem('balaji_products');
-        return saved ? JSON.parse(saved) : ALL_PRODUCTS;
+        if (saved) {
+          const parsed = JSON.parse(saved) as Product[];
+          // Migrate old categories to new simplified 'signage' category
+          const migrated = parsed.map(p => {
+            const oldCategories = ['prohibition', 'mandatory', 'warning', 'emergency', 'direction', 'fire-safety', 'general', 'signboards'];
+            if (oldCategories.includes(p.category)) {
+              return { ...p, category: 'signage' as const };
+            }
+            return p;
+          });
+          return migrated;
+        }
+        return ALL_PRODUCTS;
       }
     } catch (e) {
       console.warn('LocalStorage access failed, using default inventory:', e);

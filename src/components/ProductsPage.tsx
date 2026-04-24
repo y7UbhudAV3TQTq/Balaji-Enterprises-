@@ -10,7 +10,8 @@ import {
   CheckCircle2, 
   ArrowRight,
   ChevronLeft,
-  Search
+  Search,
+  Package
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useScroll } from 'motion/react';
 import { ALL_PRODUCTS, CATEGORIES, Product } from '../data/products';
@@ -121,10 +122,12 @@ const ProductCard = ({ product, onAddToCart }: { product: Product; onAddToCart: 
       </div>
       
       <div className="p-8 flex-grow flex flex-col relative">
-        <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mb-3 block">{product.category}</span>
+        <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mb-3 block">
+          {CATEGORIES.find(c => c.id === product.category)?.label}
+        </span>
         <h3 className="text-xl font-display font-black text-secondary mb-3 line-clamp-2 leading-[1.2] group-hover:text-primary transition-colors">{product.name}</h3>
         
-        {product.category === 'signboards' && (
+        {product.category === 'signage' && (
           <motion.div 
             initial={false}
             animate={{ height: isHovered ? 'auto' : '0px', opacity: isHovered ? 1 : 0 }}
@@ -228,7 +231,7 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
     
     cart.forEach((item, idx) => {
       text += `${idx + 1}. *${item.name.toUpperCase()}*\n`;
-      if (item.category === 'signboards') {
+      if (item.category === 'signage') {
         text += `   📐 Size: ${item.width || 'Std'} x ${item.height || 'Std'} inches\n`;
       }
       text += `   📦 Quantity: ${item.quantity}\n\n`;
@@ -310,13 +313,25 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
 
       {/* Products Grid */}
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredProducts.map(product => (
-              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-            ))}
-          </AnimatePresence>
-        </div>
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map(product => (
+                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+              ))}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+          >
+            <Package className="w-16 h-16 text-gray-200 mx-auto mb-6" />
+            <h3 className="text-xl font-display font-black text-secondary uppercase tracking-tight">No Deployment Found</h3>
+            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-2 px-6">Adjust your filters or mission search parameters.</p>
+          </motion.div>
+        )}
       </div>
 
       {/* Cart Sidebar */}
@@ -361,7 +376,7 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
                       </div>
                       <div className="flex-grow">
                         <h4 className="text-xs font-black text-secondary leading-tight mb-1">{item.name}</h4>
-                        {item.category === 'signboards' && (
+                        {item.category === 'signage' && (
                           <p className="text-[10px] font-bold text-primary uppercase">Size: {item.width || 'Std'}x{item.height || 'Std'}"</p>
                         )}
                         <div className="flex items-center gap-4 mt-3">

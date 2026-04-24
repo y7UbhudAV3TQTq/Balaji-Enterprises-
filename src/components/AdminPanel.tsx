@@ -289,7 +289,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                         </div>
                       </td>
                       <td className="px-8 py-6">
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-gray-100 px-3 py-1.5 rounded-full text-gray-500">{p.category}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest bg-gray-100 px-3 py-1.5 rounded-full text-gray-500">
+                          {CATEGORIES.find(c => c.id === p.category)?.label || p.category}
+                        </span>
                       </td>
                       <td className="px-8 py-6 text-right space-x-2">
                         <button onClick={() => startEdit(p)} className="p-3 text-gray-400 hover:text-primary transition-colors">
