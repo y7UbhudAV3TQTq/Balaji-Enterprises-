@@ -82,6 +82,57 @@
   scrollbar-width: none;
 }
 
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary/5;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/40 rounded-full hover:bg-primary/60 transition-colors;
+}
+
+.noise-overlay {
+  @apply pointer-events-none fixed inset-0 z-50 opacity-[0.03] mix-blend-overlay;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+}
+
+.text-shimmer {
+  background: linear-gradient(to right, #e63946 20%, #ff6b6b 40%, #ff6b6b 60%, #e63946 80%);
+  background-size: 200% auto;
+  color: #000;
+  background-clip: text;
+  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 5s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+.magnetic-wrap {
+  @apply inline-block transition-transform duration-300 ease-out;
+}
+
+.card-spotlight {
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none;
+  background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(230, 57, 70, 0.08), transparent 80%);
+}
+
+.group:hover .card-spotlight {
+  @apply opacity-100;
+}
+
+.split-line {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: top;
+}
+
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }

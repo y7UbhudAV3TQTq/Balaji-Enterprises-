@@ -6,7 +6,12 @@
     <title>My Google AI Studio App</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #1d3557; color: white;">
+        <h1 style="color: #e63946; font-size: 2rem; margin-bottom: 1rem;">Balaji Enterprises</h1>
+        <p style="opacity: 0.6;">Initializing Safety Solutions...</p>
+      </div>
+    </div>
     <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
       <filter id="haze">
         <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1">
@@ -15,7 +20,7 @@
         <feDisplacementMap in="SourceGraphic" scale="5" />
       </filter>
     </svg>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
 

@@ -12,8 +12,72 @@ import {
   ChevronLeft,
   Search
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useScroll } from 'motion/react';
 import { ALL_PRODUCTS, CATEGORIES, Product } from '../data/products';
+import { useProducts } from '../context/ProductsContext';
+import { useRef } from 'react';
+
+// --- Local Utilities ---
+
+const Magnetic = ({ children, strength = 0.5 }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = ref.current.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    x.set((clientX - centerX) * strength);
+    y.set((clientY - centerY) * strength);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
+      className="magnetic-wrap"
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const SplitText = ({ text, className = "" }) => {
+  const words = text.split(' ');
+  return (
+    <span className={`inline-block ${className}`}>
+      {words.map((word, i) => (
+        <span key={i} className="split-line mr-[0.2em]">
+          <motion.span
+            initial={{ y: '100%' }}
+            whileInView={{ y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: i * 0.05,
+              ease: [0.215, 0.61, 0.355, 1]
+            }}
+            viewport={{ once: true }}
+            className="inline-block"
+          >
+            {word}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+};
 
 interface CartItem extends Product {
   quantity: number;
@@ -116,12 +180,14 @@ const ProductCard = ({ product, onAddToCart }: { product: Product; onAddToCart: 
 };
 
 export default function ProductsPage({ onBack }: { onBack: () => void }) {
+  const { products } = useProducts();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { scrollYProgress } = useScroll();
 
-  const filteredProducts = ALL_PRODUCTS.filter(p => {
+  const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -175,19 +241,28 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pt-24 pb-12">
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-1 bg-primary z-[60] origin-left"
+        style={{ scaleX: scrollYProgress }}
+      />
+      <div className="noise-overlay" />
       {/* Header Area */}
-      <div className="container mx-auto px-6 mb-12">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-[0.2em] mb-8 hover:translate-x-[-4px] transition-transform"
-        >
-          <ChevronLeft className="w-4 h-4" /> Return to Home
-        </button>
+      <div className="container mx-auto px-6 mb-12 relative z-10">
+        <Magnetic strength={0.3}>
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-[0.2em] mb-8 hover:bg-primary/5 p-2 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Return to Home
+          </button>
+        </Magnetic>
         
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="max-w-xl">
             <span className="text-primary font-black tracking-widest text-[10px] uppercase block mb-3">Official Inventory</span>
-            <h1 className="text-4xl md:text-5xl font-display font-black text-secondary leading-none">Complete Safety Catalog</h1>
+            <h1 className="text-4xl md:text-[5rem] font-display font-black text-secondary leading-[0.9] tracking-tighter">
+              <SplitText text="COMPLETE SAFETY CATALOG" />
+            </h1>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FireExtinguisher, 
   ShieldCheck, 
@@ -24,8 +24,162 @@ import {
   Stethoscope,
   ShowerHead as Shower
 } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from 'motion/react';
+import { ProductsProvider, useProducts } from './context/ProductsContext';
+import { AdminPanel } from './components/AdminPanel';
 import ProductsPage from './components/ProductsPage';
+
+// --- Global Utilities ---
+
+const Magnetic = ({ children, strength = 0.5 }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = ref.current.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    x.set((clientX - centerX) * strength);
+    y.set((clientY - centerY) * strength);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
+      className="magnetic-wrap"
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const SplitText = ({ text, className = "" }) => {
+  const words = text.split(' ');
+  return (
+    <span className={`inline-block ${className}`}>
+      {words.map((word, i) => (
+        <span key={i} className="split-line mr-[0.2em]">
+          <motion.span
+            initial={{ y: '100%' }}
+            whileInView={{ y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: i * 0.05,
+              ease: [0.215, 0.61, 0.355, 1]
+            }}
+            viewport={{ once: true }}
+            className="inline-block"
+          >
+            {word}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+const CustomCursor = () => {
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const [isClicking, setIsClicking] = useState(false);
+  const [smokeParticles, setSmokeParticles] = useState<{ id: number; x: number; y: number }[]>([]);
+  
+  const springConfig = { damping: 25, stiffness: 250 };
+  const cursorXSpring = useSpring(cursorX, springConfig);
+  const cursorYSpring = useSpring(cursorY, springConfig);
+
+  useEffect(() => {
+    const moveCursor = (e: MouseEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      setIsClicking(true);
+      // Spawn white smoke at click location
+      const newParticle = { id: Date.now(), x: e.clientX, y: e.clientY };
+      setSmokeParticles(prev => [...prev.slice(-10), newParticle]);
+      
+      // Cleanup particle after animation
+      setTimeout(() => {
+        setSmokeParticles(prev => prev.filter(p => p.id !== newParticle.id));
+      }, 1000);
+    };
+
+    const handleMouseUp = () => setIsClicking(false);
+
+    window.addEventListener('mousemove', moveCursor);
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      window.removeEventListener('mousemove', moveCursor);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  return (
+    <>
+      <div className="fixed inset-0 pointer-events-none z-[110] overflow-hidden">
+        <AnimatePresence>
+          {smokeParticles.map(p => (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0.8, scale: 0.2, x: p.x - 20, y: p.y - 20 }}
+              animate={{ opacity: 0, scale: 3, y: p.y - 120, x: p.x + (Math.random() * 40 - 20) }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="absolute w-10 h-10 bg-white/40 blur-xl rounded-full"
+            />
+          ))}
+        </AnimatePresence>
+      </div>
+
+      <motion.div
+        className="fixed top-0 left-0 z-[120] pointer-events-none hidden md:block"
+        style={{
+          x: cursorXSpring,
+          y: cursorYSpring,
+          translateX: '-50%',
+          translateY: '-50%',
+        }}
+      >
+        {/* Subtle Fire/Safety Cursor */}
+        <motion.div 
+          animate={{ scale: isClicking ? 0.8 : 1 }}
+          className="relative w-6 h-6 flex items-center justify-center"
+        >
+          {/* Main Core */}
+          <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_15px_rgba(230,57,70,0.6)]" />
+          
+          {/* Outer Ring */}
+          <motion.div 
+            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.1, 0.3] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="absolute inset-0 border-2 border-primary rounded-full"
+          />
+
+          {/* Very Subtle Heat Haze */}
+          <div className="absolute inset-[-4px] bg-primary/5 blur-md rounded-full" />
+        </motion.div>
+      </motion.div>
+    </>
+  );
+};
 
 // --- Components ---
 
@@ -64,7 +218,7 @@ const Navbar = ({ onNavigate, currentView }: { onNavigate: (v: string) => void; 
             <img 
               src="https://uploads.onecompiler.io/43dtnu92q/43dtqfeb8/Balaji%20enterprisess%20invoce%20logo.png" 
               alt="Balaji Enterprises" 
-              className="h-16 md:h-20 w-auto object-contain drop-shadow-lg"
+              className="h-16 md:h-20 w-auto object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500"
             />
           </div>
         </button>
@@ -76,7 +230,7 @@ const Navbar = ({ onNavigate, currentView }: { onNavigate: (v: string) => void; 
               <button 
                 key={link.name}
                 onClick={(e) => handleLinkClick(e, link)}
-                className={`group relative font-semibold text-sm tracking-wide transition-colors ${isScrolled || currentView === 'products' ? (currentView === link.view ? 'text-primary' : 'text-secondary/80 hover:text-primary') : 'text-white/80 hover:text-white'}`}
+                className={`group relative font-bold text-[10px] uppercase tracking-[0.2em] transition-colors ${isScrolled || currentView === 'products' ? (currentView === link.view ? 'text-primary' : 'text-secondary/80 hover:text-primary') : 'text-white/80 hover:text-white'}`}
               >
                 {link.name}
                 {currentView === link.view && (
@@ -90,18 +244,20 @@ const Navbar = ({ onNavigate, currentView }: { onNavigate: (v: string) => void; 
               <a 
                 key={link.name} 
                 href={link.href} 
-                className={`font-semibold text-sm tracking-wide transition-colors ${isScrolled || currentView === 'products' ? 'text-secondary/80 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                className={`font-bold text-[10px] uppercase tracking-[0.2em] transition-colors ${isScrolled || currentView === 'products' ? 'text-secondary/80 hover:text-primary' : 'text-white/80 hover:text-white'}`}
               >
                 {link.name}
               </a>
             )
           ))}
-          <a 
-            href="#contact" 
-            className="bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm btn-hover shadow-lg shadow-primary/20"
-          >
-            FREE CONSULTATION
-          </a>
+          <Magnetic strength={0.2}>
+            <a 
+              href="#contact" 
+              className="bg-primary text-white px-8 py-3 rounded-full font-black text-[10px] tracking-widest btn-wow shadow-lg shadow-primary/20 uppercase"
+            >
+              FREE CONSULTATION
+            </a>
+          </Magnetic>
         </div>
 
         {/* Mobile Toggle */}
@@ -181,16 +337,22 @@ const EmberField = () => (
 );
 
 const Hero = () => {
-  const { scrollY } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
   const yBg = useTransform(scrollY, [0, 800], [0, 300]);
   const yContent = useTransform(scrollY, [0, 500], [0, -100]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
   const [isDischarging, setIsDischarging] = useState(false);
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center pt-24 overflow-hidden bg-secondary">
+    <section id="home" className="relative h-screen flex items-center overflow-hidden bg-secondary">
       <EmberField />
       
+      {/* Scroll Progress */}
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-1 bg-primary z-[60] origin-left"
+        style={{ scaleX: scrollYProgress }}
+      />
+
       {/* Parallax Background */}
       <motion.div style={{ y: yBg }} className="absolute inset-0 z-0">
         <div className={`absolute inset-0 bg-gradient-to-r from-secondary via-secondary/70 to-transparent z-10 transition-colors duration-1000 ${isDischarging ? 'bg-blue-900/40' : 'fire-glow'}`} />
@@ -225,19 +387,14 @@ const Hero = () => {
             <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">ELITE SAFETY ENGINEERING • EST 2015</span>
           </motion.div>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-7xl md:text-9xl font-display font-black text-white leading-[0.85] tracking-tighter mb-10"
-          >
-            EXTINGUISH <br/> <span className={`${isDischarging ? 'text-blue-400 shadow-[0_0_50px_rgba(96,165,250,0.5)]' : 'text-primary'} transition-all duration-1000 italic`}>THE RISK.</span>
-          </motion.h1>
+          <h1 className="text-[clamp(3.5rem,10vw,8rem)] font-display font-black text-white leading-[0.85] tracking-tighter mb-10">
+            <SplitText text="EXTINGUISH THE RISK." className="" />
+          </h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
             className="text-xl md:text-2xl text-white/40 max-w-2xl mb-14 leading-relaxed font-semibold italic"
           >
             Mission-critical fire suppression and industrial signage for Bangalore's high-stakes environments. Professional engineering meets rapid response.
@@ -246,20 +403,24 @@ const Hero = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
             className="flex flex-col sm:flex-row gap-8"
           >
-            <a href="#products-preview" className="bg-primary text-white px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 shadow-2xl shadow-primary/30">
-              COMMAND THE ARSENAL <Flame className="w-5 h-5" />
-            </a>
-            <button 
-              onMouseDown={() => setIsDischarging(true)}
-              onMouseUp={() => setIsDischarging(false)}
-              onMouseLeave={() => setIsDischarging(false)}
-              className="bg-white/5 text-white border border-white/10 px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 group backdrop-blur-md"
-            >
-              TEST SUPPRESSION <div className="p-1 rounded-full bg-blue-500 group-hover:animate-ping"><Shower className="w-4 h-4" /></div>
-            </button>
+            <Magnetic strength={0.2}>
+              <a href="#products-preview" className="bg-primary text-white border-2 border-primary px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 shadow-2xl shadow-primary/30">
+                COMMAND THE ARSENAL <Flame className="w-5 h-5" />
+              </a>
+            </Magnetic>
+            <Magnetic strength={0.3}>
+              <button 
+                onMouseDown={() => setIsDischarging(true)}
+                onMouseUp={() => setIsDischarging(false)}
+                onMouseLeave={() => setIsDischarging(false)}
+                className="bg-white/5 text-white border border-white/20 hover:border-white px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest btn-wow flex items-center justify-center gap-4 group backdrop-blur-md"
+              >
+                TEST SUPPRESSION <div className="p-1 rounded-full bg-blue-500 group-hover:animate-ping"><Shower className="w-4 h-4" /></div>
+              </button>
+            </Magnetic>
           </motion.div>
         </motion.div>
       </div>
@@ -394,6 +555,16 @@ const About = () => (
 );
 
 const Services = () => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   const services = [
     { 
       title: 'Signage Manufacturing', 
@@ -440,11 +611,18 @@ const Services = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
+              onMouseMove={handleMouseMove}
               className={`bento-card group flex flex-col justify-between ${
                 s.size === 'large' ? 'md:col-span-2 md:row-span-2' : 
                 s.size === 'medium' ? 'md:col-span-2 md:row-span-1' : ''
               } ${s.color || 'bg-white'}`}
+              style={{
+                '--mouse-x': `${mousePos.x}px`,
+                '--mouse-y': `${mousePos.y}px`,
+              } as React.CSSProperties}
             >
+              <div className="card-spotlight" />
+              
               {s.img && (
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
                   <img src={s.img} alt={s.title} className="w-full h-full object-cover" />
@@ -452,7 +630,7 @@ const Services = () => {
               )}
               
               <div className="relative z-10">
-                <div className={`w-16 h-16 ${s.size === 'small' ? 'bg-white/20' : 'bg-primary/5'} rounded-3xl flex items-center justify-center mb-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12`}>
+                <div className={`w-16 h-16 ${s.size === 'small' ? 'bg-white/20' : 'bg-primary/5'} rounded-3xl flex items-center justify-center mb-10 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:shadow-[0_0_20px_rgba(230,57,70,0.2)]`}>
                   <s.icon className={`w-8 h-8 ${s.size === 'small' ? 'text-white' : 'text-primary'}`} />
                 </div>
                 <h3 className={`text-4xl font-display font-black mb-6 tracking-tighter leading-none ${s.size === 'small' ? 'text-white' : 'text-secondary'}`}>{s.title}</h3>
@@ -460,8 +638,8 @@ const Services = () => {
               </div>
 
               <div className="flex justify-end relative z-10 mt-10">
-                <div className={`p-4 rounded-full ${s.size === 'small' ? 'bg-white/10' : 'bg-gray-50'} group-hover:translate-x-3 transition-transform duration-500`}>
-                  <ArrowRight className={`w-5 h-5 ${s.size === 'small' ? 'text-white' : 'text-primary'}`} />
+                <div className={`p-4 rounded-full ${s.size === 'small' ? 'bg-white/10' : 'bg-gray-100'} group-hover:bg-primary group-hover:text-white group-hover:translate-x-3 transition-all duration-500`}>
+                  <ArrowRight className={`w-5 h-5 ${s.size === 'small' ? 'text-white' : 'text-primary group-hover:text-white'}`} />
                 </div>
               </div>
             </motion.div>
@@ -614,7 +792,7 @@ const Footer = () => (
               />
             </div>
           </div>
-          <p className="text-white/40 leading-relaxed text-sm">
+          <p className="text-white/40 leading-relaxed text-sm mb-6">
             Bangalore's premium dedicated fire safety wing. Protecting high-value assets with professional grit since 2015.
           </p>
         </div>
@@ -661,18 +839,36 @@ const Footer = () => (
   </footer>
 );
 
-export default function App() {
+
+function MainApp() {
   const [view, setView] = useState('home');
   const [showToTop, setShowToTop] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const { products } = useProducts();
 
   useEffect(() => {
     const handleScroll = () => setShowToTop(window.scrollY > 500);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Hidden handshake: Alt + Shift + L
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+        setIsAdminOpen(true);
+      }
+    };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   return (
     <div className="relative selection:bg-primary/30 selection:text-secondary">
+      <div className="noise-overlay" />
+      <CustomCursor />
+      {isAdminOpen && <AdminPanel onClose={() => setIsAdminOpen(false)} />}
       <EmergencyBanner />
       <Navbar onNavigate={setView} currentView={view} />
       
@@ -681,9 +877,7 @@ export default function App() {
           {view === 'home' ? (
             <motion.div
               key="home"
-              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.5, ease: "anticipate" }}
             >
               <Hero />
@@ -697,27 +891,36 @@ export default function App() {
                 <div className="container mx-auto px-6 text-center relative z-10">
                   <SectionHeading subtitle="Hardware Preview" title="Advanced Safety Armory" />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-20">
-                    {[
-                      { id: 'ext-1', name: 'Clean Agent - 6 Kg', cat: 'Extinguisher', img: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/clean%20agent%20stored%20pressure%20fire%20extinguisher%206%20kg.png' },
-                      { id: 'ext-35', name: 'Trolley Mounted CO2', cat: 'Industrial', img: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/trolley%20mounted%20co2%20type%20fire%20extinguisher%2022.5kg.jpg' },
-                      { id: 'sign-glow-exit', name: 'Glow Emergency Sign', cat: 'Visual Safety', img: 'https://uploads.onecompiler.io/43dtnu92q/43pnhyp7f/Photoluminescent%20Fire%20Exit%20Sign%20LARGE%20-%20Man%20on%20Left%20-%20600%20x%20150Hmm%20-%20Self%20Adhesive%20Rigid%20Plastic%20-%20%5BAS-PH14-SARP%5D.jpeg' }
-                    ].map((p, i) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-20 perspective-2000">
+                    {products.slice(0, 3).map((p, i) => (
                       <motion.div 
                         key={p.id} 
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.15 }}
+                        initial={{ opacity: 0, rotateY: -20, translateZ: -200 }}
+                        whileInView={{ opacity: 1, rotateY: 0, translateZ: 0 }}
+                        transition={{ delay: i * 0.2, duration: 1, ease: "easeOut" }}
                         viewport={{ once: true, margin: "-100px" }}
-                        whileHover={{ y: -10, rotateY: 5 }}
-                        className="group p-10 rounded-[3rem] bg-white border border-gray-100 shadow-xl shadow-gray-200/40 perspective-1000"
+                        whileHover={{ 
+                          scale: 1.05, 
+                          rotateY: 10,
+                          boxShadow: "0 50px 100px -20px rgba(0,0,0,0.1), 0 30px 60px -30px rgba(230,57,70,0.2)" 
+                        }}
+                        className="group p-10 rounded-[3rem] bg-white border border-gray-100 shadow-xl shadow-gray-200/40 transform-gpu transition-all duration-500"
                       >
                         <div className="h-56 flex items-center justify-center mb-8 relative">
-                          <div className="absolute inset-0 bg-primary/5 rounded-full scale-0 group-hover:scale-100 transition-transform duration-700 blur-2xl" />
-                          <img src={p.img} alt={p.name} className="h-full object-contain relative z-10 animate-float transition-all group-hover:scale-110" />
+                          <div className="absolute inset-0 bg-primary/5 rounded-full scale-0 group-hover:scale-100 transition-transform duration-700 blur-3xl" />
+                          <motion.img 
+                            src={p.image} 
+                            alt={p.name} 
+                            className="h-full object-contain relative z-10 animate-float transition-all"
+                            whileHover={{ scale: 1.2, rotate: 5 }}
+                          />
                         </div>
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 block">{p.cat}</span>
-                        <h4 className="text-xl font-display font-black text-secondary tracking-tight">{p.name}</h4>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 block">{p.category}</span>
+                        <h4 className="text-xl font-display font-black text-secondary tracking-tight group-hover:text-primary transition-colors">{p.name}</h4>
+                        
+                        <div className="mt-8 pt-8 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Inventory Unit</p>
+                        </div>
                       </motion.div>
                     ))}
                   </div>
@@ -726,15 +929,17 @@ export default function App() {
                     whileInView={{ opacity: 1 }}
                     className="mt-24"
                   >
-                    <button 
-                      onClick={() => { setView('products'); window.scrollTo(0,0); }}
-                      className="group inline-flex items-center gap-4 bg-secondary text-white px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest btn-hover shadow-2xl shadow-secondary/40"
-                    >
-                      EXPLORE FULL INVENTORY 
-                      <div className="bg-primary p-1.5 rounded-full group-hover:translate-x-2 transition-transform">
-                        <ArrowRight className="w-4 h-4 text-white" />
-                      </div>
-                    </button>
+                    <Magnetic strength={0.2}>
+                      <button 
+                        onClick={() => { setView('products'); window.scrollTo(0,0); }}
+                        className="group inline-flex items-center gap-4 bg-secondary text-white px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest btn-hover shadow-2xl shadow-secondary/40"
+                      >
+                        EXPLORE FULL INVENTORY 
+                        <div className="bg-primary p-1.5 rounded-full group-hover:translate-x-2 transition-transform">
+                          <ArrowRight className="w-4 h-4 text-white" />
+                        </div>
+                      </button>
+                    </Magnetic>
                   </motion.div>
                 </div>
               </section>
@@ -745,9 +950,7 @@ export default function App() {
           ) : view === 'products' ? (
             <motion.div
               key="products"
-              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5, ease: "anticipate" }}
             >
               <ProductsPage onBack={() => setView('home')} />
@@ -773,5 +976,13 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ProductsProvider>
+      <MainApp />
+    </ProductsProvider>
   );
 }
