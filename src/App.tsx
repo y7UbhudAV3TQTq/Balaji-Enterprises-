@@ -158,23 +158,17 @@ const CustomCursor = () => {
           translateY: '-50%',
         }}
       >
-        {/* Subtle Fire/Safety Cursor */}
         <motion.div 
           animate={{ scale: isClicking ? 0.8 : 1 }}
-          className="relative w-6 h-6 flex items-center justify-center"
+          className="relative w-8 h-8 flex items-center justify-center"
         >
-          {/* Main Core */}
-          <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_15px_rgba(230,57,70,0.6)]" />
-          
-          {/* Outer Ring */}
+          {/* Subtle Safety Pulse */}
+          <div className="w-4 h-4 bg-primary/40 rounded-full blur-[2px]" />
           <motion.div 
-            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.1, 0.3] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+            animate={{ scale: [1, 2], opacity: [0.3, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
             className="absolute inset-0 border-2 border-primary rounded-full"
           />
-
-          {/* Very Subtle Heat Haze */}
-          <div className="absolute inset-[-4px] bg-primary/5 blur-md rounded-full" />
         </motion.div>
       </motion.div>
     </>
