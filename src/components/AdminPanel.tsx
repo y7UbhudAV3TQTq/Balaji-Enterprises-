@@ -11,10 +11,16 @@ import {
   LayoutGrid,
   Search,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Image as ImageIcon,
+  Sparkles,
+  Loader2,
+  Wand2
 } from 'lucide-react';
 import { useProducts } from '../context/ProductsContext';
 import { Product, CATEGORIES } from '../data/products';
+import { generateProductImage } from '../services/imageService';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -29,10 +35,55 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const { products, addProduct, removeProduct, updateProduct } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [specInput, setSpecInput] = useState('');
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     category: 'extinguishers',
     specs: []
   });
+
+  const handleFile = (file: File | null) => {
+    if (file && (file.type.startsWith('image/'))) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProduct(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!newProduct.name) return;
+    setIsGenerating(true);
+    try {
+      const url = await generateProductImage(newProduct.name, newProduct.description || '');
+      if (url) {
+        setNewProduct(prev => ({ ...prev, image: url }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const addSpec = () => {
+    if (specInput.trim()) {
+      setNewProduct(prev => ({
+        ...prev,
+        specs: [...(prev.specs || []), specInput.trim()]
+      }));
+      setSpecInput('');
+    }
+  };
+
+  const removeSpec = (index: number) => {
+    setNewProduct(prev => ({
+      ...prev,
+      specs: (prev.specs || []).filter((_, i) => i !== index)
+    }));
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,40 +250,57 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Asset Visual (Upload PNG/JPG)</label>
-                        <div className="flex flex-col gap-4">
-                          {newProduct.image && (
-                            <div className="relative w-32 h-32 bg-gray-100 rounded-2xl overflow-hidden border-2 border-gray-100">
-                              <img src={newProduct.image} className="w-full h-full object-contain" alt="Preview" />
-                              <button 
-                                onClick={() => setNewProduct({...newProduct, image: ''})}
-                                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          )}
-                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-3xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <Plus className="w-8 h-8 text-gray-300 mb-2" />
-                              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Select Image File</p>
-                            </div>
-                            <input 
-                              type="file" 
-                              className="hidden" 
-                              accept="image/png, image/jpeg"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setNewProduct({...newProduct, image: reader.result as string});
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Asset Visual</label>
+                        <div className="space-y-4">
+                          <div 
+                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={() => setIsDragging(false)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setIsDragging(false);
+                              const file = e.dataTransfer.files[0];
+                              if (file) handleFile(file);
+                            }}
+                            className={`relative group flex flex-col items-center justify-center w-full min-h-[200px] border-2 border-dashed rounded-[2.5rem] transition-all overflow-hidden ${
+                              isDragging ? 'border-primary bg-primary/5 scale-[0.98]' : 'border-gray-200 bg-gray-50'
+                            }`}
+                          >
+                            {newProduct.image ? (
+                              <div className="relative w-full h-full p-8 flex items-center justify-center group/img">
+                                <img src={newProduct.image} className="max-h-40 object-contain drop-shadow-2xl" alt="Asset Preview" />
+                                <div className="absolute inset-0 bg-secondary/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                  <button 
+                                    onClick={() => setNewProduct({...newProduct, image: ''})}
+                                    className="p-4 bg-red-500 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all hover:scale-110"
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </button>
+                                  <label className="p-4 bg-white text-secondary rounded-2xl shadow-xl hover:bg-gray-100 transition-all hover:scale-110 cursor-pointer">
+                                    <Upload className="w-5 h-5" />
+                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
+                                  </label>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center p-12 cursor-pointer w-full h-full group-hover:bg-primary/5 transition-all">
+                                <div className="p-5 bg-white rounded-2xl shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                                  <Upload className="w-8 h-8 text-primary" />
+                                </div>
+                                <p className="text-sm font-black text-secondary uppercase tracking-widest mb-1">Mobilize Asset Visual</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Drop tactical imagery or click to select</p>
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
+                              </label>
+                            )}
+                          </div>
+                          
+                          <button
+                            onClick={handleGenerateAI}
+                            disabled={isGenerating || !newProduct.name}
+                            className="w-full bg-white border border-gray-100 p-4 rounded-2xl text-[10px] font-black text-secondary uppercase tracking-widest flex items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-30 group"
+                          >
+                            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />}
+                            {isGenerating ? 'Synthesizing Tactical Asset...' : 'Generate Intelligent Visual'}
+                          </button>
                         </div>
                       </div>
                       <div>
@@ -257,6 +325,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                           rows={4}
                           className="w-full bg-gray-50 border-2 border-transparent px-6 py-4 rounded-2xl focus:border-primary focus:bg-white outline-none transition-all"
                         />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Specifications Matrix</label>
+                        <div className="flex gap-2 mb-3">
+                          <input 
+                            placeholder="Add tactical spec..." 
+                            value={specInput}
+                            onChange={(e) => setSpecInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSpec())}
+                            className="flex-1 bg-gray-50 border-2 border-transparent px-6 py-4 rounded-2xl focus:border-primary focus:bg-white outline-none transition-all font-bold text-sm"
+                          />
+                          <button 
+                            onClick={(e) => { e.preventDefault(); addSpec(); }}
+                            className="bg-secondary text-white p-4 rounded-2xl hover:bg-primary transition-colors"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(newProduct.specs || []).map((spec, i) => (
+                            <span key={i} className="bg-gray-100 text-secondary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                              {spec}
+                              <button onClick={() => removeSpec(i)} className="hover:text-primary transition-colors">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <button 
                         onClick={saveProduct}

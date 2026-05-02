@@ -11,11 +11,16 @@ import {
   ArrowRight,
   ChevronLeft,
   Search,
-  Package
+  Package,
+  ArrowUpDown,
+  Wand2,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useScroll } from 'motion/react';
 import { ALL_PRODUCTS, CATEGORIES, Product } from '../data/products';
 import { useProducts } from '../context/ProductsContext';
+import { generateProductImage } from '../services/imageService';
 import { useRef } from 'react';
 
 // --- Local Utilities ---
@@ -86,10 +91,173 @@ interface CartItem extends Product {
   height?: string;
 }
 
-const ProductCard = ({ product, onAddToCart }: { product: Product; onAddToCart: (p: Product, w?: string, h?: string) => void; key?: string }) => {
+// --- Quick View Modal ---
+
+const QuickViewModal = ({ 
+  product, 
+  isOpen, 
+  onClose, 
+  onAddToCart,
+  onGenerateImage
+}: { 
+  product: Product | null; 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onAddToCart: (p: Product, w?: string, h?: string) => void;
+  onGenerateImage: (p: Product) => Promise<void>;
+}) => {
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  if (!product) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-secondary/90 backdrop-blur-md z-[80]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-4xl max-h-[90vh] bg-white z-[90] rounded-[3rem] shadow-premium overflow-hidden flex flex-col md:flex-row"
+          >
+            <button 
+              onClick={onClose}
+              className="absolute top-6 right-6 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl z-10 transition-colors"
+            >
+              <X className="w-6 h-6 text-secondary" />
+            </button>
+
+            {/* Product Image Section */}
+            <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-12 relative overflow-hidden">
+              <div className="absolute inset-0 bg-primary/5" />
+              {product.image ? (
+                <motion.img
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-contain relative z-10 drop-shadow-3xl"
+                />
+              ) : (
+                <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <Package className="w-12 h-12 text-gray-300" />
+                  </div>
+                  <h4 className="text-secondary font-black text-sm uppercase tracking-widest mb-2">Image Missing</h4>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight mb-6">Use AI to generate a deployment visual</p>
+                  <button 
+                    onClick={async () => {
+                      setIsGenerating(true);
+                      await onGenerateImage(product);
+                      setIsGenerating(false);
+                    }}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm disabled:opacity-50"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-4 h-4" />
+                    )}
+                    {isGenerating ? 'Synthesizing...' : 'Generate with Imagen'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Content Section */}
+            <div className="w-full md:w-1/2 p-12 overflow-y-auto flex flex-col">
+              <div className="mb-auto">
+                <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mb-4 block">
+                  {CATEGORIES.find(c => c.id === product.category)?.label}
+                </span>
+                <h2 className="text-3xl font-display font-black text-secondary mb-6 leading-tight">
+                  {product.name}
+                </h2>
+                
+                <p className="text-gray-400 font-medium leading-relaxed mb-8">
+                  {product.description}
+                </p>
+
+                <div className="space-y-4 mb-10">
+                  <h4 className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" /> Technical Specs
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {product.specs.map((spec, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-tight">
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(230,57,70,0.4)]" />
+                        {spec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {product.category === 'signage' && (
+                  <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 mb-10">
+                    <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-secondary uppercase tracking-[0.2em]">
+                      <Ruler className="w-4 h-4 text-primary" /> Custom Matrix
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-grow">
+                        <input 
+                          type="number" 
+                          placeholder="W" 
+                          value={width}
+                          onChange={(e) => setWidth(e.target.value)}
+                          className="w-full bg-white border border-gray-100 rounded-xl p-4 text-xs font-black outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">IN</span>
+                      </div>
+                      <span className="text-gray-300 font-black">×</span>
+                      <div className="relative flex-grow">
+                        <input 
+                          type="number" 
+                          placeholder="H" 
+                          value={height}
+                          onChange={(e) => setHeight(e.target.value)}
+                          className="w-full bg-white border border-gray-100 rounded-xl p-4 text-xs font-black outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">IN</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  onAddToCart(product, width, height);
+                  onClose();
+                }}
+                className="w-full bg-primary text-white py-6 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.2em] btn-hover flex items-center justify-center gap-3 shadow-2xl shadow-primary/20 mt-8"
+              >
+                ADD TO MISSION ORDER
+                <ShoppingCart className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const ProductCard = ({ product, onAddToCart, onQuickView, onGenerateImage }: { product: Product; onAddToCart: (p: Product, w?: string, h?: string) => void; onQuickView: (p: Product) => void; onGenerateImage: (p: Product) => Promise<void>; key?: string }) => {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [isHovered, setIsHovered] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   return (
     <motion.div 
@@ -111,17 +279,48 @@ const ProductCard = ({ product, onAddToCart }: { product: Product; onAddToCart: 
             {product.badge}
           </motion.span>
         )}
-        <motion.img 
-          animate={{ scale: isHovered ? 1.1 : 1, rotate: isHovered ? 2 : 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-full object-contain relative z-10 drop-shadow-2xl"
+        {product.image ? (
+          <motion.img 
+            animate={{ scale: isHovered ? 1.1 : 1, rotate: isHovered ? 2 : 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            src={product.image} 
+            alt={product.name} 
+            className="w-full h-full object-contain relative z-10 drop-shadow-2xl cursor-pointer"
+            onClick={() => onQuickView(product)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center relative z-10">
+            <Package className="w-12 h-12 text-gray-200 mb-4" />
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={async (e) => {
+                e.stopPropagation();
+                setIsGenerating(true);
+                await onGenerateImage(product);
+                setIsGenerating(false);
+              }}
+              disabled={isGenerating}
+              className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-[8px] font-black text-primary uppercase tracking-[0.2em] shadow-sm hover:bg-primary hover:text-white transition-all disabled:opacity-50 flex items-center gap-2"
+            >
+              {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              {isGenerating ? 'GEN...' : 'GENERATE'}
+            </motion.button>
+          </div>
+        )}
+        <div 
+          className={`absolute inset-0 bg-primary/5 transition-opacity duration-700 cursor-pointer ${isHovered ? 'opacity-100' : 'opacity-0'}`} 
+          onClick={() => onQuickView(product)}
         />
-        <div className={`absolute inset-0 bg-primary/5 transition-opacity duration-700 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
       </div>
       
       <div className="p-8 flex-grow flex flex-col relative">
+        <button 
+          onClick={() => onQuickView(product)}
+          className="absolute top-8 right-8 w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 hover:text-primary hover:border-primary/20 transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+        >
+          <Search className="w-4 h-4" />
+        </button>
         <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mb-3 block">
           {CATEGORIES.find(c => c.id === product.category)?.label}
         </span>
@@ -183,18 +382,70 @@ const ProductCard = ({ product, onAddToCart }: { product: Product; onAddToCart: 
 };
 
 export default function ProductsPage({ onBack }: { onBack: () => void }) {
-  const { products } = useProducts();
+  const { products, updateProduct } = useProducts();
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeSubCategory, setActiveSubCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'popularity' | 'none'>('none');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { scrollYProgress } = useScroll();
+
+  const EXTINGUISHER_TYPES = [
+    { id: 'all', label: 'All Types' },
+    { id: 'abc', label: 'ABC Type' },
+    { id: 'bc', label: 'BC Type' },
+    { id: 'co2', label: 'CO2 Type' },
+    { id: 'clean', label: 'Clean Agent' },
+    { id: 'water', label: 'Water' },
+    { id: 'foam', label: 'Foam' },
+    { id: 'li-ion', label: 'Li-ion' },
+    { id: 'modular', label: 'Modular' },
+  ];
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    
+    // Sub-category matching for extinguishers
+    let matchesSubCategory = true;
+    if (activeCategory === 'extinguishers' && activeSubCategory !== 'all') {
+      const name = p.name.toLowerCase();
+      if (activeSubCategory === 'abc') matchesSubCategory = name.includes('abc');
+      else if (activeSubCategory === 'bc') matchesSubCategory = name.includes('bc') && !name.includes('abc');
+      else if (activeSubCategory === 'co2') matchesSubCategory = name.includes('co2');
+      else if (activeSubCategory === 'clean') matchesSubCategory = name.includes('clean agent');
+      else if (activeSubCategory === 'water') matchesSubCategory = name.includes('water');
+      else if (activeSubCategory === 'foam') matchesSubCategory = name.includes('foam');
+      else if (activeSubCategory === 'li-ion') matchesSubCategory = name.includes('lithium') || name.includes('li-ion');
+      else if (activeSubCategory === 'modular') matchesSubCategory = name.includes('modular') || name.includes('moldren');
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || (
+      p.name.toLowerCase().includes(query) || 
+      p.description.toLowerCase().includes(query) ||
+      p.specs.some(s => s.toLowerCase().includes(query)) ||
+      p.category.toLowerCase().includes(query)
+    );
+
+    return matchesCategory && matchesSubCategory && matchesSearch;
+  }).sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'popularity') {
+      const aBest = a.badge === 'Best Seller' || a.badge === 'Hot' ? 1 : 0;
+      const bBest = b.badge === 'Best Seller' || b.badge === 'Hot' ? 1 : 0;
+      return bBest - aBest;
+    }
+    return 0;
   });
+
+  const resetFilters = () => {
+    setActiveCategory('all');
+    setActiveSubCategory('all');
+    setSearchQuery('');
+  };
 
   const handleAddToCart = (product: Product, w?: string, h?: string) => {
     setCart(prev => {
@@ -209,6 +460,25 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
       return [...prev, { ...product, quantity: 1, width: w, height: h }];
     });
     setIsCartOpen(true);
+  };
+
+  const handleQuickView = (product: Product) => {
+    setSelectedProduct(product);
+    setIsQuickViewOpen(true);
+  };
+
+  const handleGenerateImage = async (product: Product) => {
+    try {
+      const imageUrl = await generateProductImage(product.name, product.description);
+      if (imageUrl) {
+        updateProduct({ ...product, image: imageUrl });
+        if (selectedProduct?.id === product.id) {
+          setSelectedProduct({ ...product, image: imageUrl });
+        }
+      }
+    } catch (error) {
+      console.error("AI Generation failed:", error);
+    }
   };
 
   const updateQuantity = (id: string, delta: number, w?: string, h?: string) => {
@@ -250,15 +520,41 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
       />
       <div className="noise-overlay" />
       {/* Header Area */}
-      <div className="container mx-auto px-6 mb-12 relative z-10">
-        <Magnetic strength={0.3}>
+      <div className="container mx-auto px-6 mb-8 relative z-10">
+        <nav className="flex items-center gap-2 mb-12 overflow-x-auto no-scrollbar py-2">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-[0.2em] mb-8 hover:bg-primary/5 p-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap"
           >
-            <ChevronLeft className="w-4 h-4" /> Return to Home
+            Home
           </button>
-        </Magnetic>
+          <div className="w-1 h-1 bg-gray-300 rounded-full flex-shrink-0" />
+          <button 
+            onClick={() => setActiveCategory('all')}
+            className={`flex items-center gap-2 font-black text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap ${activeCategory === 'all' ? 'text-primary' : 'text-gray-400 hover:text-primary'}`}
+          >
+            Products
+          </button>
+          {activeCategory !== 'all' && (
+            <>
+              <div className="w-1 h-1 bg-gray-300 rounded-full flex-shrink-0" />
+              <button 
+                onClick={() => setActiveSubCategory('all')}
+                className={`font-black text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap ${activeSubCategory === 'all' ? 'text-primary' : 'text-gray-400 hover:text-primary'}`}
+              >
+                {CATEGORIES.find(c => c.id === activeCategory)?.label}
+              </button>
+            </>
+          )}
+          {activeSubCategory !== 'all' && (
+            <>
+              <div className="w-1 h-1 bg-gray-300 rounded-full flex-shrink-0" />
+              <span className="text-primary font-black text-[10px] uppercase tracking-widest whitespace-nowrap">
+                {EXTINGUISHER_TYPES.find(t => t.id === activeSubCategory)?.label}
+              </span>
+            </>
+          )}
+        </nav>
         
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="max-w-xl">
@@ -270,14 +566,41 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
 
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
             <div className="relative group flex-grow lg:w-64">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchQuery ? 'text-primary' : 'text-gray-400'}`} />
               <input 
                 type="text" 
                 placeholder="Find equipment..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all" 
+                className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all" 
               />
+              <AnimatePresence>
+                {searchQuery && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="relative group">
+              <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors pointer-events-none" />
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-10 text-xs font-black uppercase tracking-widest shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="none">Sort Default</option>
+                <option value="name">Sort Name A-Z</option>
+                <option value="popularity">Sort Best Sellers</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-gray-400 pointer-events-none" />
             </div>
             
             <button 
@@ -299,39 +622,91 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
       {/* Categories Toolbar */}
       <div className="container mx-auto px-6 mb-12">
         <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide no-scrollbar">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`whitespace-nowrap px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeCategory === cat.id ? 'bg-secondary text-white shadow-xl shadow-secondary/20' : 'bg-white text-gray-400 hover:text-secondary shadow-sm'}`}
-            >
-              {cat.label}
-            </button>
-          ))}
+          {CATEGORIES.map(cat => {
+            const count = cat.id === 'all' 
+              ? products.length 
+              : products.filter(p => p.category === cat.id).length;
+              
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  setActiveSubCategory('all');
+                }}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 ${activeCategory === cat.id ? 'bg-secondary text-white shadow-xl shadow-secondary/20' : 'bg-white text-gray-400 hover:text-secondary shadow-sm'}`}
+              >
+                {cat.label}
+                <span className={`px-2 py-0.5 rounded-md text-[8px] ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Sub-Categories for Extinguishers */}
+        <AnimatePresence>
+          {activeCategory === 'extinguishers' && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar pt-2">
+                {EXTINGUISHER_TYPES.map(type => (
+                  <button
+                    key={type.id}
+                    onClick={() => setActiveSubCategory(type.id)}
+                    className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wide transition-all border ${activeSubCategory === type.id ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border-gray-100 hover:border-primary/30 hover:text-primary'}`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Products Grid */}
       <div className="container mx-auto px-6">
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {filteredProducts.length > 0 ? (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+            >
               {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={handleAddToCart} 
+                  onQuickView={handleQuickView}
+                  onGenerateImage={handleGenerateImage}
+                />
               ))}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
-          >
-            <Package className="w-16 h-16 text-gray-200 mx-auto mb-6" />
-            <h3 className="text-xl font-display font-black text-secondary uppercase tracking-tight">No Deployment Found</h3>
-            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-2 px-6">Adjust your filters or mission search parameters.</p>
-          </motion.div>
-        )}
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+            >
+              <Package className="w-16 h-16 text-gray-200 mx-auto mb-6" />
+              <h3 className="text-xl font-display font-black text-secondary uppercase tracking-tight">No Deployment Found</h3>
+              <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-2 px-6 mb-8">Adjust your filters or mission search parameters.</p>
+              <button 
+                onClick={resetFilters}
+                className="bg-primary/10 text-primary px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm"
+              >
+                RESET MISSION PARAMETERS
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Cart Sidebar */}
@@ -403,10 +778,11 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <button 
+                    disabled={cart.length === 0}
                     onClick={clearCart}
-                    className="py-4 rounded-2xl bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors"
+                    className="py-4 rounded-2xl bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    Discard All
+                    Clear All
                   </button>
                   <button 
                     disabled={cart.length === 0}
@@ -424,6 +800,14 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
           </>
         )}
       </AnimatePresence>
+
+      <QuickViewModal 
+        product={selectedProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+        onAddToCart={handleAddToCart}
+        onGenerateImage={handleGenerateImage}
+      />
     </div>
   );
 }

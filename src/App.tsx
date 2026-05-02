@@ -22,6 +22,8 @@ import {
   Bell,
   Eye,
   Stethoscope,
+  Target,
+  Wind,
   ShowerHead as Shower
 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from 'motion/react';
@@ -679,6 +681,269 @@ const SignBoards = () => {
   );
 };
 
+const FireSafetyGuide = () => {
+  const [activeStep, setActiveStep] = React.useState(0);
+
+  const extinguisherTypes = [
+    { id: 1, title: 'ABC Fire Extinguishers', desc: 'Multipurpose devices for various fire classes. Effective for Class A, B, and C fires.' },
+    { id: 2, title: 'BC Fire Extinguishers', desc: 'Ideal for flammable liquids (Class B) and energized electrical equipment (Class C).' },
+    { id: 3, title: 'Clean Agent Extinguishers', desc: 'Safe for electronics, eco-friendly gaseous suppression that leaves no residue.' },
+    { id: 4, title: 'CO2 Fire Extinguishers', desc: 'Displaces oxygen to suffocate fire; perfect for electrical fires with no cleanup required.' },
+    { id: 5, title: 'Water Fire Extinguishers', desc: 'Dispenses a stream of water; suitable strictly for Class A fires (solids).' },
+    { id: 6, title: 'Foam Fire Extinguishers', desc: 'Perfect for Class A and Class B (liquid) fires. Cannot handle gaseous fires.' },
+    { id: 7, title: 'Li-ion Battery Extinguishers', desc: 'Specifically designed to suppress intense fires caused by battery failures.' },
+    { id: 8, title: 'Automatic Modular Type', desc: 'Detects and suppresses fire automatically in unoccupied spaces.' },
+    { id: 9, title: 'Special Application', desc: 'Protects against specialized hazards like Class K (kitchen) and Class D (metal) fires.' },
+  ];
+
+  const fireClasses = [
+    { label: 'Class A', type: 'Solid Solids', desc: 'Wood, cloth, paper, plastic. The most common source of fire.' },
+    { label: 'Class B', type: 'Flammable Liquids', desc: 'Oil, alcohol, gasoline, and petroleum-based products.' },
+    { label: 'Class C', type: 'Gaseous Fires', desc: 'Hydrogen, butane, or methane. Explosive and fast-spreading.' },
+    { label: 'Class D', type: 'Combustible Metals', desc: 'Magnesium, potassium. Requires specialized extinguishing agents.' },
+    { label: 'Class E', type: 'Electrical Hazards', desc: 'Fires arising from electrically energized devices and wiring.' },
+    { label: 'Class K/F', type: 'Cooking Media', desc: 'Super-heated cooking oils and fats in commercial or home kitchens.' },
+  ];
+
+  const maintenanceTips = [
+    { title: 'Monthly Inspection', desc: 'Check for visible damage, leaks, or broken seals.' },
+    { title: 'Pressure Gauge', desc: 'Ensure the needle stays in the green zone.' },
+    { title: 'Cleanliness', desc: 'Wipe off dust or grease that might obstruct functionality.' },
+    { title: 'Shake Chem Units', desc: 'Occasionally shake dry chemical units to prevent powder settling.' },
+    { title: 'Annual Service', desc: 'Schedule a professional inspection at least once a year.' },
+  ];
+
+  return (
+    <section className="py-32 bg-secondary text-white overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="max-w-4xl mb-24">
+          <SectionHeading subtitle="Expert Knowledge" title="Mastering Fire Safety" centered={false} />
+          <p className="text-xl text-white/60 leading-relaxed font-medium">
+            Understanding your equipment is the first step toward total protection. At Balaji Enterprises, we believe education is as vital as the hardware we provide.
+          </p>
+        </div>
+
+        {/* Basic Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-32">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }} 
+            whileInView={{ opacity: 1, x: 0 }}
+            className="space-y-8"
+          >
+            <h3 className="text-3xl font-display font-black text-primary">What is a Fire Extinguisher?</h3>
+            <p className="text-white/70 leading-relaxed text-lg italic">
+              "A Fire Extinguisher is a fire safety device to extinguish early stage fires quickly and prevent potential hazards. They are lightweight yet control fire before it spreads while saving lives and property."
+            </p>
+            <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
+              <h4 className="text-xl font-bold mb-4">Why are they important?</h4>
+              <p className="text-white/60 leading-relaxed">
+                The reason is simple: It helps to put out small fires. By putting out fire at the primary level, it protects the environment from burning debris and smoke. Researches have shown that a small extinguisher can handle <span className="text-primary font-black">80%</span> of all fire incidents, stopping the fire from becoming more disastrous.
+              </p>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }} 
+            whileInView={{ opacity: 1, x: 0 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          >
+            {fireClasses.map((f, i) => (
+              <div key={i} className="p-6 bg-white/5 rounded-2xl border border-white/5 hover:bg-primary/20 transition-all group">
+                <div className="text-primary font-black text-xs tracking-widest mb-2">{f.label.includes('K') ? 'K / F' : f.label}</div>
+                <h4 className="font-bold text-lg mb-1">{f.type}</h4>
+                <p className="text-xs text-white/40 group-hover:text-white/80 transition-colors">{f.desc}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Types Grid */}
+        <div className="mb-32">
+          <SectionHeading subtitle="Hardware Selection" title="Types of Fire Extinguishers & Usage" />
+          <p className="text-center text-white/50 max-w-2xl mx-auto -mt-10 mb-16">
+            A single fire suppression device cannot tackle every type of fire. It's crucial to choose the right agent for perfect safety.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { id: 1, title: 'ABC Fire Extinguishers', desc: 'Multipurpose devices effective for class A, B, and C fires.' },
+              { id: 2, title: 'BC Fire Extinguishers', desc: 'Effective for Class B flammable liquids/gases and Class C energized electrical equipment.' },
+              { id: 3, title: 'Clean Agent Fire Extinguishers', desc: 'Non-conductive, safe, eco-friendly gaseous suppression that reduces oxygen levels to stop chain reactions.' },
+              { id: 4, title: 'CO2 Fire Extinguishers', desc: 'One of the cleanest extinguishers; uses CO2 to displace oxygen and suffocate the fire without residue.' },
+              { id: 5, title: 'Water Fire Extinguishers', desc: 'Dispenses a stream of water; suitable for solid materials (Class A fires).' },
+              { id: 6, title: 'Foam Fire Extinguishers', desc: 'Perfect for Class A and liquid Class B fires. Not suitable for gaseous fires.' },
+              { id: 7, title: 'Lithium-ion Battery Extinguishers', desc: 'Specifically designed to suppress fires caused by failing lithium-ion battery packs.' },
+              { id: 8, title: 'Automatic Modular Type', desc: 'Detects and suppresses fire without human intervention, perfect for unoccupied spaces.' },
+              { id: 9, title: 'Special Application', desc: 'Protects against Class K (kitchen), Class D (metal), and other specialized combustible fires.' },
+            ].map((t, i) => (
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="p-10 bg-white/5 rounded-[3rem] border border-white/10 hover:border-primary/50 transition-all group flex flex-col"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center font-black text-primary border border-primary/20">
+                    {t.id}
+                  </div>
+                  <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{t.title}</h4>
+                </div>
+                <p className="text-sm text-white/50 leading-relaxed">{t.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* PASS Method */}
+        <div className="bg-primary rounded-[3rem] p-12 lg:p-20 mb-32 relative overflow-hidden group">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h3 className="text-4xl font-display font-black mb-8">The P.A.S.S. Protocol</h3>
+              <p className="text-white/90 text-lg mb-12">Acting fast requires a clear mind. Follow this simple 4-step protocol for maximum effectiveness.</p>
+              
+              <div className="space-y-6">
+                {[
+                  { l: 'P', name: 'Pull', desc: 'Pull the pin to break the safety seal.' },
+                  { l: 'A', name: 'Aim', desc: 'Aim the nozzle at the base of the fire.' },
+                  { l: 'S', name: 'Squeeze', desc: 'Squeeze the lever to discharge agent.' },
+                  { l: 'S', name: 'Sweep', desc: 'Sweep side-to-side across the base.' },
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    onMouseEnter={() => setActiveStep(i)}
+                    className={`flex items-center gap-6 p-4 rounded-2xl transition-all cursor-default ${activeStep === i ? 'bg-white/10 scale-105' : 'opacity-60 hover:opacity-100'}`}
+                  >
+                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-xl transition-all ${activeStep === i ? 'bg-white text-primary border-white' : 'border-white text-white'}`}>
+                      {item.l}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xl">{item.name}</h4>
+                      <p className="text-white/70 text-sm">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="h-full flex items-center justify-center">
+              <div className="relative w-full max-w-[300px] aspect-square flex items-center justify-center">
+                <div className="absolute inset-0 bg-white/20 blur-[100px] animate-pulse"></div>
+                
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeStep}
+                    initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 1.2, rotate: 10 }}
+                    transition={{ type: 'spring', damping: 15 }}
+                    className="relative z-10 flex flex-col items-center"
+                  >
+                    {activeStep === 0 && (
+                      <motion.div className="relative">
+                        <FireExtinguisher className="w-48 h-48 text-white" />
+                        <motion.div 
+                          animate={{ y: [0, -40, 0], opacity: [1, 0, 1] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                          className="absolute top-10 right-4 w-10 h-10 border-4 border-white rounded-full bg-primary flex items-center justify-center shadow-lg"
+                        >
+                          <span className="text-[10px] font-black">PIN</span>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                    
+                    {activeStep === 1 && (
+                      <motion.div className="relative flex flex-col items-center">
+                        <FireExtinguisher className="w-48 h-48 text-white rotate-[-45deg]" />
+                        <motion.div 
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ repeat: Infinity, duration: 1 }}
+                          className="absolute -bottom-4 -right-4"
+                        >
+                          <Target className="w-32 h-32 text-white" />
+                        </motion.div>
+                      </motion.div>
+                    )}
+                    
+                    {activeStep === 2 && (
+                      <motion.div className="relative">
+                        <FireExtinguisher className="w-48 h-48 text-white" />
+                        <motion.div 
+                          animate={{ scaleY: [1, 0.7, 1] }}
+                          transition={{ repeat: Infinity, duration: 0.4 }}
+                          className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-4 bg-white/40 rounded-t-lg border border-white"
+                        />
+                        <motion.div 
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: [0, 4], opacity: [0.4, 0] }}
+                          transition={{ repeat: Infinity, duration: 0.6 }}
+                          className="absolute top-20 -right-20 w-32 h-32 bg-white rounded-full blur-2xl"
+                        />
+                      </motion.div>
+                    )}
+                    
+                    {activeStep === 3 && (
+                      <motion.div className="relative">
+                        <FireExtinguisher className="w-48 h-48 text-white rotate-[-30deg]" />
+                        <motion.div 
+                          animate={{ x: [-80, 80, -80] }}
+                          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                          className="absolute -right-24 top-24 flex gap-4"
+                        >
+                          <Wind className="w-20 h-20 text-white/60" />
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Maintenance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+          <div>
+            <h3 className="text-3xl font-display font-black mb-8 text-primary">System Integrity</h3>
+            <p className="text-white/60 mb-12">Maintaining your suppressors ensures they work when seconds count. Follow our maintenance blueprint for 100% readiness.</p>
+            <div className="space-y-3">
+              {maintenanceTips.map((tip, i) => (
+                <div key={i} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-start gap-4">
+                  <CheckCircle2 className="text-primary w-5 h-5 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-bold text-sm mb-1">{tip.title}</h4>
+                    <p className="text-xs text-white/40">{tip.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-white/5 rounded-[3rem] p-12 border border-white/10 flex flex-col justify-center">
+            <h3 className="text-3xl font-display font-black mb-8">Why Balaji?</h3>
+            <div className="space-y-6">
+              {[
+                'ISO-Certified International Standards',
+                'Precision Engineered Suppression Systems',
+                'Durability Meets Tactical Efficiency',
+                'Comprehensive PAN India Network',
+                'Expert Technical Guidance 24/7',
+                'On-Time Deployment Promise'
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                  <span className="font-bold text-sm text-white/80">{text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 p-8 bg-primary/10 rounded-3xl border border-primary/20">
+              <p className="text-white/60 text-sm font-medium">For expert consultation, contact our technical wing at:</p>
+              <p className="text-2xl font-black text-white mt-2">+91 74116 16167</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const Contact = () => (
   <section id="contact" className="py-24 bg-[#f8fafc]">
     <div className="container mx-auto px-6">
@@ -941,6 +1206,7 @@ function MainApp() {
               </section>
               <Services />
               <SignBoards />
+              <FireSafetyGuide />
               <Contact />
             </motion.div>
           ) : view === 'products' ? (

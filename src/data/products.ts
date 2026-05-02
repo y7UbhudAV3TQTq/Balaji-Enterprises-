@@ -67,6 +67,15 @@ export const ALL_PRODUCTS: Product[] = [
     description: 'Professional CO2 flood protection on wheels.',
     specs: ['22.5kg Capacity', 'Class B, C', 'High Pressure']
   },
+  { 
+    id: 'ext-refill', 
+    name: 'Refilling Fire Extinguisher Service', 
+    category: 'extinguishers', 
+    image: 'https://images.unsplash.com/photo-1599700403969-fde2fbc94741?auto=format&fit=crop&w=800&q=80',
+    description: 'Professional recharging and refilling for all types of extinguishers.',
+    specs: ['All Agent Types', 'Pressure Testing', 'Safety Certification'],
+    badge: 'Service'
+  },
 
   // --- PROHIBITION SIGNS ---
   { 
@@ -104,6 +113,24 @@ export const ALL_PRODUCTS: Product[] = [
     description: 'Keep emergency access paths clear.',
     specs: ['Metal/Plate', 'UV Printed', 'Anti-Fade'],
     defaultSize: '12x18'
+  },
+  { 
+    id: 'sign-photo-a4', 
+    name: 'Safety Photo Frame A4', 
+    category: 'signage', 
+    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=800&q=80',
+    description: 'Premium A4 size frame for safety certificates or notices.',
+    specs: ['A4 Size', 'High Durability', 'Sleek Border'],
+    defaultSize: 'A4'
+  },
+  { 
+    id: 'sign-photo-a3', 
+    name: 'Safety Photo Frame A3', 
+    category: 'signage', 
+    image: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=800&q=80',
+    description: 'Large A3 size frame for emergency maps or large notices.',
+    specs: ['A3 Size', 'Impact Resistant', 'Professional Finish'],
+    defaultSize: 'A3'
   },
 
   // --- MANDATORY SIGNS ---
@@ -214,5 +241,14 @@ export const ALL_PRODUCTS: Product[] = [
     description: 'Gents/Ladies restroom icons for public buildings.',
     specs: ['Pictograms', 'Sleek Design', 'Easy Clean'],
     defaultSize: '12x4'
+  },
+  { 
+    id: 'gen-1', 
+    name: 'Custom Fire Safety Instructions Board', 
+    category: 'signage', 
+    image: '',
+    description: 'A detailed fire safety instruction board with icons and emergency procedures.',
+    specs: ['Custom Text', 'Wall Mounted', 'High Durability'],
+    defaultSize: '24x36'
   }
 ];
