@@ -15,7 +15,10 @@ import {
   ArrowUpDown,
   Wand2,
   Sparkles,
-  Loader2
+  Loader2,
+  Filter,
+  ChevronRight,
+  Layers
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useScroll } from 'motion/react';
 import { ALL_PRODUCTS, CATEGORIES, Product } from '../data/products';
@@ -387,6 +390,7 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
   const [activeSubCategory, setActiveSubCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'popularity' | 'none'>('none');
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -565,6 +569,15 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <div className="lg:hidden flex gap-2">
+              <button 
+                onClick={() => setIsFilterDrawerOpen(true)}
+                className="flex-1 bg-white border border-gray-100 rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-black text-xs tracking-widest text-secondary shadow-sm"
+              >
+                <Filter className="w-4 h-4 text-primary" /> FILTERS
+              </button>
+            </div>
+
             <div className="relative group flex-grow lg:w-64">
               <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchQuery ? 'text-primary' : 'text-gray-400'}`} />
               <input 
@@ -619,8 +632,8 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      {/* Categories Toolbar */}
-      <div className="container mx-auto px-6 mb-12">
+      {/* Categories Toolbar - Hidden on Desktop Sidebar */}
+      <div className="lg:hidden container mx-auto px-6 mb-12">
         <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide no-scrollbar">
           {CATEGORIES.map(cat => {
             const count = cat.id === 'all' 
@@ -637,77 +650,225 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
                 className={`whitespace-nowrap px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 ${activeCategory === cat.id ? 'bg-secondary text-white shadow-xl shadow-secondary/20' : 'bg-white text-gray-400 hover:text-secondary shadow-sm'}`}
               >
                 {cat.label}
-                <span className={`px-2 py-0.5 rounded-md text-[8px] ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                  {count}
-                </span>
               </button>
             );
           })}
         </div>
+      </div>
 
-        {/* Sub-Categories for Extinguishers */}
-        <AnimatePresence>
-          {activeCategory === 'extinguishers' && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar pt-2">
-                {EXTINGUISHER_TYPES.map(type => (
-                  <button
-                    key={type.id}
-                    onClick={() => setActiveSubCategory(type.id)}
-                    className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wide transition-all border ${activeSubCategory === type.id ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border-gray-100 hover:border-primary/30 hover:text-primary'}`}
+      {/* Main Content Layout */}
+      <div className="container mx-auto px-6">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Desktop Filter Sidebar */}
+          <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-32 h-fit">
+            <div className="space-y-12">
+              <div>
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                  <Layers className="w-4 h-4" /> Category Deployment
+                </h4>
+                <div className="space-y-2">
+                  {CATEGORIES.map(cat => {
+                    const isActive = activeCategory === cat.id;
+                    const count = cat.id === 'all' 
+                      ? products.length 
+                      : products.filter(p => p.category === cat.id).length;
+                    
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setActiveSubCategory('all');
+                        }}
+                        className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all group ${
+                          isActive 
+                            ? 'bg-secondary text-white shadow-xl shadow-secondary/20' 
+                            : 'hover:bg-white hover:text-secondary text-gray-400'
+                        }`}
+                      >
+                        <span className="font-black text-[10px] uppercase tracking-widest">{cat.label}</span>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${
+                            isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary'
+                          }`}>
+                            {count}
+                          </span>
+                          <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isActive ? 'rotate-90 text-white' : 'text-gray-300 group-hover:translate-x-1'}`} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {activeCategory === 'extinguishers' && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                >
+                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-6">Agent Type Matrix</h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {EXTINGUISHER_TYPES.map(type => (
+                      <button
+                        key={type.id}
+                        onClick={() => setActiveSubCategory(type.id)}
+                        className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
+                          activeSubCategory === type.id 
+                            ? 'bg-primary/5 border-primary text-primary shadow-sm' 
+                            : 'bg-white border-gray-100 text-gray-400 hover:border-primary/20 hover:text-secondary'
+                        }`}
+                      >
+                        <div className={`w-2 h-2 rounded-full ${activeSubCategory === type.id ? 'bg-primary' : 'bg-gray-200'}`} />
+                        <span className="font-black text-[9px] uppercase tracking-widest">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              <div className="p-8 bg-secondary rounded-[2.5rem] text-white">
+                <Sparkles className="w-8 h-8 text-primary mb-4" />
+                <h5 className="font-black text-xs uppercase tracking-widest mb-2 leading-tight">Tactical Support</h5>
+                <p className="text-[10px] text-gray-400 font-bold leading-relaxed mb-6">Need expert consultation on fire safety equipment?</p>
+                <button 
+                  onClick={() => window.open('https://wa.me/917411616167', '_blank')}
+                  className="w-full bg-primary text-white py-4 rounded-xl font-black text-[8px] uppercase tracking-widest hover:scale-[1.02] transition-all"
+                >
+                  Contact Expert
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Grid Area */}
+          <div className="flex-grow">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {filteredProducts.length > 0 ? (
+                <motion.div 
+                  layout
+                  className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                >
+                  {filteredProducts.map(product => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onAddToCart={handleAddToCart} 
+                      onQuickView={handleQuickView}
+                      onGenerateImage={handleGenerateImage}
+                    />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+                >
+                  <Package className="w-16 h-16 text-gray-200 mx-auto mb-6" />
+                  <h3 className="text-xl font-display font-black text-secondary uppercase tracking-tight">No Deployment Found</h3>
+                  <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-2 px-6 mb-8">Adjust your filters or mission search parameters.</p>
+                  <button 
+                    onClick={resetFilters}
+                    className="bg-primary/10 text-primary px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm"
                   >
-                    {type.label}
+                    RESET MISSION PARAMETERS
                   </button>
-                ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Drawer - Mobile Only */}
+      <AnimatePresence>
+        {isFilterDrawerOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsFilterDrawerOpen(false)}
+              className="fixed inset-0 bg-secondary/80 backdrop-blur-sm z-[100]"
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-white z-[110] rounded-t-[3rem] flex flex-col"
+            >
+              <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+                <h2 className="text-xl font-display font-black text-secondary uppercase tracking-tight">Mission Filters</h2>
+                <button onClick={() => setIsFilterDrawerOpen(false)} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                  <X className="w-6 h-6 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-8 space-y-10">
+                <div>
+                  <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">Category</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setActiveSubCategory('all');
+                        }}
+                        className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                          activeCategory === cat.id 
+                            ? 'bg-secondary text-white shadow-xl' 
+                            : 'bg-gray-50 text-gray-400'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {activeCategory === 'extinguishers' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                    >
+                      <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">Extinguisher Type</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {EXTINGUISHER_TYPES.map(type => (
+                          <button
+                            key={type.id}
+                            onClick={() => setActiveSubCategory(type.id)}
+                            className={`px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wide transition-all border ${
+                              activeSubCategory === type.id 
+                                ? 'bg-primary text-white border-primary shadow-lg' 
+                                : 'bg-white text-gray-400 border-gray-100'
+                            }`}
+                          >
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="p-8">
+                <button 
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className="w-full bg-secondary text-white py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl"
+                >
+                  APPLY FILTERS
+                </button>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Products Grid */}
-      <div className="container mx-auto px-6">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {filteredProducts.length > 0 ? (
-            <motion.div 
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-            >
-              {filteredProducts.map(product => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={handleAddToCart} 
-                  onQuickView={handleQuickView}
-                  onGenerateImage={handleGenerateImage}
-                />
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
-            >
-              <Package className="w-16 h-16 text-gray-200 mx-auto mb-6" />
-              <h3 className="text-xl font-display font-black text-secondary uppercase tracking-tight">No Deployment Found</h3>
-              <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-2 px-6 mb-8">Adjust your filters or mission search parameters.</p>
-              <button 
-                onClick={resetFilters}
-                className="bg-primary/10 text-primary px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm"
-              >
-                RESET MISSION PARAMETERS
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Cart Sidebar */}
       <AnimatePresence>
@@ -776,21 +937,31 @@ export default function ProductsPage({ onBack }: { onBack: () => void }) {
                   <span className="text-xl font-display font-black text-secondary">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    disabled={cart.length === 0}
-                    onClick={clearCart}
-                    className="py-4 rounded-2xl bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    Clear All
-                  </button>
+                <div className="flex flex-col gap-3">
                   <button 
                     disabled={cart.length === 0}
                     onClick={sendWhatsAppOrder}
-                    className="py-4 rounded-2xl bg-[#25D366] text-white font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 btn-hover shadow-xl shadow-[#25D366]/20 disabled:opacity-50 disabled:scale-100"
+                    className="w-full py-5 rounded-[1.5rem] bg-primary text-white font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 btn-hover shadow-2xl shadow-primary/30 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
                   >
-                    SEND ORDER <MessageCircle className="w-4 h-4" />
+                    Proceed to Checkout <ArrowRight className="w-4 h-4" />
                   </button>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      disabled={cart.length === 0}
+                      onClick={clearCart}
+                      className="py-4 rounded-2xl bg-gray-50 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Clear All
+                    </button>
+                    <button 
+                      disabled={cart.length === 0}
+                      onClick={sendWhatsAppOrder}
+                      className="py-4 rounded-2xl bg-[#25D366]/10 text-[#25D366] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-all disabled:opacity-30"
+                    >
+                      WhatsApp <MessageCircle className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-6 text-[9px] text-center font-bold text-gray-300 uppercase tracking-wider leading-relaxed">
                   Clicking "Send Order" will open WhatsApp with your itemized list pre-formatted for Balaji Enterprises.

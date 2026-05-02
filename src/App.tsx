@@ -478,7 +478,7 @@ const Stats = () => {
   );
 };
 
-const SectionHeading = ({ subtitle, title, centered = true }) => (
+const SectionHeading = ({ subtitle, title, centered = true, white = false }: { subtitle: string; title: string; centered?: boolean; white?: boolean }) => (
   <div className={`mb-16 ${centered ? 'text-center' : ''}`}>
     <motion.span 
       initial={{ opacity: 0 }}
@@ -490,7 +490,7 @@ const SectionHeading = ({ subtitle, title, centered = true }) => (
     <motion.h2 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      className="text-4xl md:text-5xl font-display font-black text-secondary"
+      className={`text-4xl md:text-5xl font-display font-black ${white ? 'text-white' : 'text-secondary'}`}
     >
       {title}
     </motion.h2>
@@ -717,7 +717,7 @@ const FireSafetyGuide = () => {
     <section className="py-32 bg-secondary text-white overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mb-24">
-          <SectionHeading subtitle="Expert Knowledge" title="Mastering Fire Safety" centered={false} />
+          <SectionHeading subtitle="Expert Knowledge" title="Mastering Fire Safety" centered={false} white={true} />
           <p className="text-xl text-white/60 leading-relaxed font-medium">
             Understanding your equipment is the first step toward total protection. At Balaji Enterprises, we believe education is as vital as the hardware we provide.
           </p>
@@ -759,7 +759,7 @@ const FireSafetyGuide = () => {
 
         {/* Types Grid */}
         <div className="mb-32">
-          <SectionHeading subtitle="Hardware Selection" title="Types of Fire Extinguishers & Usage" />
+          <SectionHeading subtitle="Hardware Selection" title="Types of Fire Extinguishers & Usage" white={true} />
           <p className="text-center text-white/50 max-w-2xl mx-auto -mt-10 mb-16">
             A single fire suppression device cannot tackle every type of fire. It's crucial to choose the right agent for perfect safety.
           </p>
